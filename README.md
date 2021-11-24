@@ -15,7 +15,7 @@ $ git clone https://github.com/wesleymutwiri/mpesa-statement-retriever.git
 Change directory into the folder downloaded
 
 ```bash
-$ cd personal-svelte-cli
+$ cd mpesa-statement-retriever
 ```
 
 ## File structure
