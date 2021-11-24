@@ -1,0 +1,8 @@
+unencrypted/
+*.pyc
+database.db
+token.json
+output.pdf
+pdfs
+credentials.json
+pdfs/
