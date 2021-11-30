@@ -138,22 +138,23 @@ def home():
 
 @app.route("/transactions", methods=['GET'])
 def get_transactions():
-    conn = sqlite3.connect("database.db")
+    conn = sqlite3.connect("../database.db")
     conn.row_factory = dict_factory
     cur = conn.cursor()
-    cur.execute("SELECT * FROM Transactions")
+    cur.execute("SELECT * FROM Transactions ORDER BY 'Completion Time'")
     rows = cur.fetchall()
     return jsonify(rows)
 
 
 @app.route("/transaction/<month>")
 def get_month_transactions(month):
-    conn = sqlite3.connect("database.db")
+    conn = sqlite3.connect("../database.db")
     conn.row_factory = dict_factory
     cur = conn.cursor()
     # cur.execute(
     # "SELECT * FROM 'MonthlyTotals'")
-    cur.execute('select SUM(transaction) as Price,strftime("%m-%Y", transDate) as "month-year" from transaction group by strftime("%m-%Y", transDate);')
+    query = "SELECT * FROM TotalsTrial WHERE dateFrom BETWEEN datetime('%m', 'start of month') AND datetime('now', 'localtime') = {}".format(month)
+    cur.execute(query)
     rows = cur.fetchall()
     return jsonify(rows)
 

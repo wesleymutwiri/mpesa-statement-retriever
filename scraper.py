@@ -66,16 +66,16 @@ def main():
                 df = pd.DataFrame(columns=headers)
                 smallDf = pd.DataFrame(columns=totalCostHeaders)
                 # print(df)
-                # all_tables = tables[i].df
-                # if tables[i].shape[1] == 7:
-                #     temp = tables[i].df.copy()
-                #     temp.columns = headers
-                #     temp = temp.iloc[1:]
-                #     saved_table = pd.concat([df, temp], sort=False)
-                #     saved_table.to_sql(name="Transactions", con=conn,
-                #                        if_exists="append", index=False)
-                #     print(saved_table)
-                # print("Seven columned")
+                all_tables = tables[i].df
+                if tables[i].shape[1] == 7:
+                    temp = tables[i].df.copy()
+                    temp.columns = headers
+                    temp = temp.iloc[1:]
+                    saved_table = pd.concat([df, temp], sort=False)
+                    saved_table.to_sql(name="Transactions", con=conn,
+                                       if_exists="append", index=False)
+                    print(saved_table)
+                print("Seven columned")
                 if tables[i].shape[1] == 3:
                     temp = tables[i].df.copy()
                     temp.columns = totalCostHeaders
