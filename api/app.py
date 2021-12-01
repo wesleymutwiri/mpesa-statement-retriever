@@ -141,7 +141,8 @@ def get_transactions():
     conn = sqlite3.connect("../database.db")
     conn.row_factory = dict_factory
     cur = conn.cursor()
-    cur.execute("SELECT * FROM Transactions ORDER BY 'Completion Time'")
+    cur.execute(
+        'SELECT Balance,"Completion Time",Details,Withdrawn FROM Transactions ORDER BY "-Completion Time"')
     rows = cur.fetchall()
     return jsonify(rows)
 
@@ -153,7 +154,8 @@ def get_month_transactions(month):
     cur = conn.cursor()
     # cur.execute(
     # "SELECT * FROM 'MonthlyTotals'")
-    query = "SELECT * FROM TotalsTrial WHERE dateFrom BETWEEN datetime('%m', 'start of month') AND datetime('now', 'localtime') = {}".format(month)
+    query = "SELECT * FROM TotalsTrial WHERE dateFrom BETWEEN datetime('%m', 'start of month') AND datetime('now', 'localtime') = {}".format(
+        month)
     cur.execute(query)
     rows = cur.fetchall()
     return jsonify(rows)
