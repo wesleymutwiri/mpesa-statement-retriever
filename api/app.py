@@ -1,16 +1,21 @@
 
 # from app.models import Goals
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-import os
-import sqlite3
-import jwt
-from datetime import datetime
 from flask_marshmallow import Marshmallow
 from marshmallow_sqlalchemy import field_for
+
+from datetime import datetime
+from functools import wraps
+from dotenv import load_dotenv
+
+import sqlite3
+import jwt
+import os
 import time
 
+load_dotenv()
 
 app = Flask(__name__)
 app.config["DEBUG"] = True
@@ -18,26 +23,26 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////' + \
     os.path.abspath("../database.db")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config["SQLALCHEMY_ECHO"] = True
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 ma = Marshmallow(app)
 
 
 username = os.environ.get('USERNAME')
-password = os.environ.get('PASSWORD')
+default_password = os.environ.get('PASSWORD')
 
 
-def generate_token(self, expires_in=600):
-    return jwt.encode({'id': self.id, 'exp': time.time() + expires_in}, app.config['SECRET_KEY'], algorithm='HS256')
+def generate_token(expires_in=600):
+    return jwt.encode({'id': 1, 'exp': time.time() + expires_in}, app.config['SECRET_KEY'], 'HS256')
 
 
-@ staticmethod
 def verify_auth_token(token):
     try:
-        data = jwt.decode(token, app.config['SECRET_KEY'], algorithm=['HS256'])
+        data = jwt.decode(token, app.config['SECRET_KEY'], 'HS256')
         return "Shit is valid G"
     except:
-        return "Auth token is valid"
+        raise(ValueError, "Auth token is invalid")
 
 
 class Goals(db.Model):
@@ -121,14 +126,33 @@ def dict_factory(cursor, row):
     return d
 
 
+def token_required(f):
+    @wraps(f)
+    def decorator(*args, **kwargs):
+        token = None
+        if 'x-access-tokens' in request.headers:
+            token = request.headers['x-access-tokens']
+
+        if not token:
+            return make_response(jsonify({'message': "Where is your token?"}), 403)
+        try:
+            verify_auth_token(token)
+        except:
+            return make_response(jsonify({'message': "We have issues here"}), 400)
+        return f(*args, **kwargs)
+    return decorator
+
+
 @app.route("/login", methods=['POST'])
 def get_token():
     credentials = request.get_json()
-    if credentials["username"] == username and credentials["password"] == password:
+    print(default_password)
+    print(username)
+    if credentials["username"] == username and credentials["password"] == default_password:
         token = generate_token()
-        return jsonify({'token': token.decode('ascii'), 'duration': 600})
+        return jsonify({'token': token, 'duration': 600})
     else:
-        return jsonify({"response": "Invalid credentials"})
+        return make_response(jsonify({"response": "Invalid credentials"}), 403)
 
 
 @app.route("/", methods=['GET'])
@@ -137,6 +161,7 @@ def home():
 
 
 @app.route("/transactions", methods=['GET'])
+@token_required
 def get_transactions():
     conn = sqlite3.connect("../database.db")
     conn.row_factory = dict_factory
@@ -167,7 +192,7 @@ def create_goal():
     goal_schema = GoalSchema()
     goal = goal_schema.load(post_data)
     result = goal_schema.dump(goal.create())
-    return jsonify({"result": result}, 200)
+    return make_response(jsonify({"result": result}), 201)
 
 
 @app.route("/goals/<goal_id>", methods=["PUT"])
@@ -178,6 +203,15 @@ def update_goal(goal_id):
     goal = goal_schema.load(put_data, instance=current_goal, partial=True)
     result = goal_schema.dump(goal.create())
     return jsonify({"message": "record has been updated successfully", "result": result})
+
+
+@app.route("/goals/<goal_id>", methods=["GET"])
+def get_single_goal(goal_id):
+    current_goal = Goals.query.get(goal_id)
+
+    goal_schema = GoalSchema()
+    result = goal_schema.dump(current_goal.create())
+    return jsonify({"result": result})
 
 
 @app.route("/goals")

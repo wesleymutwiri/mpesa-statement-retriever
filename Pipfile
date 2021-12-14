@@ -15,6 +15,7 @@ marshmallow = "*"
 flask-marshmallow = "*"
 marshmallow-sqlalchemy = "*"
 pyjwt = "*"
+python-dotenv = "*"
 
 [dev-packages]
 
