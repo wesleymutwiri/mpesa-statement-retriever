@@ -9,13 +9,28 @@ Still currently a work in progress and drastic changes on how MPESA data is retr
 Clone the repository into your machine using
 
 ```bash
-$ git clone https://github.com/wesleymutwiri/mpesa-statement-retriever.git
+git clone https://github.com/wesleymutwiri/mpesa-statement-retriever.git
 ```
 
 Change directory into the folder downloaded
 
 ```bash
-$ cd mpesa-statement-retriever
+cd mpesa-statement-retriever
+```
+
+In order to use the scraper, you'll need to activate the Gmail API and place the `token.json` file in the root path of this project. Once the scraper is run it will prompt the user to sign in and allow access to their gmail account.
+
+You can use any python virtual environment but personally I prefer to use [pipenv]() which you'll need to install on your machine and activate
+
+```bash
+pipenv shell
+pipenv install
+```
+
+To run the scraper, afterwards, you simply run the python file `scraper.py` which contains code for scraping the mpesa PDFs from your gmail account.
+
+```bash
+python3 scraper.py
 ```
 
 ## File structure
